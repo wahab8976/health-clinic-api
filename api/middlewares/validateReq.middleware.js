@@ -58,17 +58,6 @@ const validateRequest = (inputSchema, schemaScope) => {
     try {
       // validating incoming request query
 
-      if (!Object.keys(req.query).length) {
-        // returning the response with an error message
-        return res.status(400).json({
-          status: "FAILED",
-          message: "Data Validation Failed",
-          error: {
-            error: `Incoming request query can't be empty.`,
-          },
-        });
-      }
-
       // validating the incoming schema
       const validationResult = await inputSchema.validateAsync(req.query, {
         abortEarly: false,
