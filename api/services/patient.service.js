@@ -1,4 +1,4 @@
-const Patient = require("../models/patient.model");
+const Patient = require("../models/user.model");
 const { throwError } = require("../utils/error.util");
 
 // CreatePatient

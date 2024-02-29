@@ -10,10 +10,8 @@ const registerSchema = Joi.object({
   email: Joi.string()
     .pattern(new RegExp(/^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/))
     .required(),
-  gender: Joi.string()
-    .uppercase()
-    .valid("MALE", "FEMALE", "OTHER")
-    .required(),
+  age: Joi.number().min(0).required(),
+  gender: Joi.string().uppercase().valid("MALE", "FEMALE", "OTHER").required(),
   address: Joi.string().trim().required(),
   specialization: Joi.string().trim().required(),
   password: Joi.string().required(),
@@ -27,25 +25,26 @@ const loginSchema = Joi.object({
 const updateProfileSchema = Joi.object({
   firstName: Joi.string().trim().uppercase(),
   lastName: Joi.string().trim().uppercase(),
+  age: Joi.number().min(0).required(),
   gender: Joi.string().uppercase().valid("MALE", "FEMALE", "OTHER"),
   specialization: Joi.string().trim(),
   address: Joi.string().trim(),
   password: Joi.string(),
   oldPassword: Joi.string()
-  .when("password", {
-    is: Joi.exist(),
-    then: Joi.required(),
-    otherwise: Joi.optional(),
-  })
-  .invalid(Joi.ref("password"))
-  .messages({
-    "any.invalid": "password and oldPassword must not be same",
-  }),
+    .when("password", {
+      is: Joi.exist(),
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .invalid(Joi.ref("password"))
+    .messages({
+      "any.invalid": "password and oldPassword must not be same",
+    }),
 })
-.with("oldPassword", "password")
-.messages({
-  "object.with": "password is required",
-});
+  .with("oldPassword", "password")
+  .messages({
+    "object.with": "password is required",
+  });
 
 module.exports = {
   registerSchema,

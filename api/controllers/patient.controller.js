@@ -27,6 +27,7 @@ const registerPatient = async (req, res, next) => {
       );
     }
 
+    req.body.role = "PATIENT";
     const newPatient = await Patient.createPatient(req.body);
 
     if (newPatient.status === "FAILED") {
@@ -41,6 +42,7 @@ const registerPatient = async (req, res, next) => {
     const signedToken = await generateToken(newPatient.data._id, "PATIENT");
 
     // Soft delete properties
+    newPatient.data.specialization = undefined;
     newPatient.data.password = undefined;
     newPatient.data.isDeleted = undefined;
 
@@ -117,7 +119,7 @@ const getPatients = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, ...restQuery } = req.query;
     const filter = { isDeleted: false, ...restQuery };
-    const projection = { password: 0, isDeleted: 0 };
+    const projection = { password: 0, isDeleted: 0, specialization: 0 };
     const countPatients = await Patient.countPatients(filter);
     const patients = await Patient.getPatients(filter, projection, page, limit);
 
@@ -154,7 +156,7 @@ const getPatientProfile = async (req, res, next) => {
   try {
     const patientId = req.user._id;
 
-    const projection = { password: 0, isDeleted: 0 };
+    const projection = { password: 0, isDeleted: 0, specialization: 0 };
     const patient = await Patient.getPatientById(patientId, projection);
 
     if (patient.status === "FAILED") {
@@ -206,7 +208,10 @@ const updatePatientProfile = async (req, res, next) => {
       }
     }
 
-    const options = { new: true, fields: { password: 0, isDeleted: 0 } };
+    const options = {
+      new: true,
+      fields: { password: 0, isDeleted: 0, specialization: 0 },
+    };
     const updatedPatient = await Patient.updatePatientById(
       patientId,
       req.body,

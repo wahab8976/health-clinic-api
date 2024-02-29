@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 
-const doctorSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
@@ -19,15 +19,23 @@ const doctorSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    age: { type: Number, min: 0, required: true },
     gender: {
       type: String,
       enum: ["MALE", "FEMALE", "OTHER"],
       uppercase: true,
       required: true,
     },
-    address: { type: String, trim: true, required: true },
-    specialization: { type: String, trim: true, required: true },
+    address: { type: String, required: true, trim: true },
+    weight: { type: Number, min: 0, default: null}, // Patient specific
+    specialization: { type: String, trim: true, default: null }, // Doctor specific
     password: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ["DOCTOR", "PATIENT"],
+      uppercase: true,
+      required: true,
+    },
     isDeleted: { type: Boolean, default: false },
   },
   {
@@ -36,7 +44,7 @@ const doctorSchema = new mongoose.Schema(
 );
 
 // Encrypt password using bcrypt
-doctorSchema.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next();
   }
@@ -45,7 +53,7 @@ doctorSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-doctorSchema.pre("findOneAndUpdate", async function (next) {
+userSchema.pre("findOneAndUpdate", async function (next) {
   const update = this.getUpdate();
 
   if (update.password) {
@@ -56,6 +64,6 @@ doctorSchema.pre("findOneAndUpdate", async function (next) {
   next();
 });
 
-const Doctor = mongoose.model("Doctor", doctorSchema);
+const User = mongoose.model("User", userSchema);
 
-module.exports = Doctor;
+module.exports = User;
