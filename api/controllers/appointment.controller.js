@@ -152,6 +152,50 @@ const updateAppointmentById = async (req, res, next) => {
     if (userRole === "PATIENT") filter.patient = req.user._id;
     if (userRole === "DOCTOR") filter.doctor = req.user._id;
 
+    const appointment = await Appointment.getAppointment(filter);
+
+    if (appointment.status === "FAILED") {
+      throwError(
+        appointment.status,
+        appointment.error.statusCode,
+        appointment.error.message,
+        appointment.error.identifier
+      );
+    }
+
+    // Avoid the update changes if appointment is approved (not applicable for doctor)
+    if (
+      req.user.role !== "DOCTOR" &&
+      appointment.data.status === "APPROVED"
+    ) {
+      throwError(
+        "FAILED",
+        422,
+        "Appointment is already approved, cannot be update",
+        "0x000D081"
+      );
+    }
+
+    // Check availability with updated changes
+    const isAvailable = await Appointment.checkAvailability(
+      appointment.data.doctor,
+      req.body.start || appointment.data.start,
+      req.body.end || appointment.data.end,
+      appointmentId
+    );
+
+    if (isAvailable.status === "FAILED") {
+      throwError(
+        isAvailable.status,
+        isAvailable.error.statusCode,
+        isAvailable.error.message,
+        isAvailable.error.identifier
+      );
+    }
+
+    // Reset the status to PENDING if the start or end time is updated
+    if (req.body.start || req.body.end) req.body.status = "PENDING";
+
     const updatedAppointment = await Appointment.updateAppointment(
       filter,
       req.body,
@@ -185,6 +229,28 @@ const deleteAppointmentById = async (req, res, next) => {
   try {
     const { appointmentId } = req.params;
     const patientId = req.user._id;
+
+    const filter = { _id: appointmentId, isDeleted: false };
+    const appointment = await Appointment.getAppointment(filter);
+
+    if (appointment.status === "FAILED") {
+      throwError(
+        appointment.status,
+        appointment.error.statusCode,
+        appointment.error.message,
+        appointment.error.identifier
+      );
+    }
+
+    // If the appointment is already approved, it cannot be deleted
+    if (appointment.data.status === "APPROVED") {
+      throwError(
+        "FAILED",
+        422,
+        "Appointment is already approved, cannot be deleted",
+        "0x000D082"
+      );
+    }
 
     const options = { new: true, fields: { isDeleted: 1 } };
     const deletedAppointment = await Appointment.deleteAppointment(

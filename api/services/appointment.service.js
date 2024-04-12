@@ -94,108 +94,8 @@ const getAppointment = async (filter, projection) => {
   }
 };
 
-// Not yet used
-// GetAppointmentsByPatientId
-const getAppointmentsByPatientId = async (
-  patientId,
-  projection,
-  page,
-  limit
-) => {
-  try {
-    const appointments = await Appointment.find(
-      { patient: patientId, isDeleted: false },
-      projection,
-      { sort: { start: 1 }, skip: (page - 1) * limit, limit }
-    );
-
-    if (appointments && appointments.length) {
-      return {
-        status: "SUCCESS",
-        data: appointments,
-      };
-    } else {
-      return {
-        status: "FAILED",
-        error: {
-          statusCode: 404,
-          identifier: "0x000D06",
-          message: "Appointments not found",
-        },
-      };
-    }
-  } catch (error) {
-    throwError("FAILED", 422, error.message, "0x000D07");
-  }
-};
-
-// Not yet used
-// GetAppointmentsByDoctorId
-const getAppointmentsByDoctorId = async (doctorId, projection, page, limit) => {
-  try {
-    const appointments = await Appointment.find(
-      { doctor: doctorId, isDeleted: false },
-      projection,
-      { sort: { start: 1 }, skip: (page - 1) * limit, limit }
-    );
-
-    if (appointments && appointments.length) {
-      return {
-        status: "SUCCESS",
-        data: appointments,
-      };
-    } else {
-      return {
-        status: "FAILED",
-        error: {
-          statusCode: 404,
-          identifier: "0x000D08",
-          message: "Appointments not found",
-        },
-      };
-    }
-  } catch (error) {
-    throwError("FAILED", 422, error.message, "0x000D09");
-  }
-};
-
-// Not yet used
-// GetAppointmentsByPatientIdAndDoctorId
-const getAppointmentsByPatientIdAndDoctorId = async (
-  patientId,
-  doctorId,
-  page,
-  limit
-) => {
-  try {
-    const appointments = await Appointment.find(
-      { patient: patientId, doctor: doctorId, isDeleted: false },
-      null,
-      { sort: { start: 1 }, skip: (page - 1) * limit, limit }
-    );
-
-    if (appointments && appointments.length) {
-      return {
-        status: "SUCCESS",
-        data: appointments,
-      };
-    } else {
-      return {
-        status: "FAILED",
-        error: {
-          statusCode: 404,
-          identifier: "0x000D0A",
-          message: "Appointments not found",
-        },
-      };
-    }
-  } catch (error) {
-    throwError("FAILED", 422, error.message, "0x000D0B");
-  }
-};
-
 // CheckAppointmentAvailability
-const checkAvailability = async (doctor, start, end) => {
+const checkAvailability = async (doctor, start, end, _id = null) => {
   try {
     // If any existing appointment is found, slot is not available
     const appointment = await Appointment.findOne({
@@ -205,7 +105,7 @@ const checkAvailability = async (doctor, start, end) => {
       isDeleted: false,
     });
 
-    if (appointment) {
+    if (appointment && appointment._id.toString() !== _id) {
       return {
         status: "FAILED",
         error: {
