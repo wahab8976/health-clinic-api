@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Ensure smooth transition for active state changes */
+#AdminNavbar li {
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+#AdminNavbar li span {
+    transition: color 0.3s ease;
+}
+
+/* Change cursor to pointer when hovering over images */
+#AdminNavbar li img:hover {
+    cursor: pointer;
+}
+
+
+#AdminNavbar li img,
+span:hover {
+    cursor: pointer;
+}
